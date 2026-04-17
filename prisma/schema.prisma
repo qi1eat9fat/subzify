@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// Key-value store for system-level configuration.
+/// Keys: "passwordHash", "barkKey", "barkServer", "telegramBotToken",
+///       "telegramChatId", "isSetup"
+model SystemConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id            String         @id @default(cuid())
+  name          String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+
+  @@map("categories")
+}
+
+model Subscription {
+  id           String    @id @default(cuid())
+  name         String
+  icon         String?
+  amount       Float     @default(0)
+  currency     String    @default("CNY")
+  cycleCount   Int       @default(1)
+  cycleUnit    String    @default("month")
+  autoRenew    Boolean   @default(true)
+  expiresAt    DateTime
+  notifyBefore Int       @default(3)
+  notifyHour   Int       @default(9)
+  notifyMinute Int       @default(0)
+  notifiedAt   DateTime?
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([expiresAt])
+  @@index([categoryId])
+  @@map("subscriptions")
+}
+
+/// Cached exchange rates. Stores: 1 unit of `currency` = `rate` CNY.
+model ExchangeRate {
+  currency  String   @id
+  rate      Float
+  updatedAt DateTime @updatedAt
+
+  @@map("exchange_rates")
+}

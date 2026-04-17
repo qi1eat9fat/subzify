@@ -1,0 +1,13 @@
+services:
+  subzify:
+    image: ghcr.io/qi1eat9fat/subzify:latest
+    container_name: subzify
+    ports:
+      - "8300:8300"
+    environment:
+      - IRON_SESSION_SECRET=your-secret-at-least-32-characters-long
+      - DATABASE_URL=file:/app/data/subzify.db
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
