@@ -2,11 +2,13 @@ FROM node:20-alpine AS base
 
 FROM base AS deps
 WORKDIR /app
+RUN apk add --no-cache libc6-compat python3 make g++ openssl
 COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM base AS builder
 WORKDIR /app
+RUN apk add --no-cache libc6-compat openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
@@ -16,7 +18,7 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV TZ=Asia/Shanghai
-RUN apk add --no-cache tzdata \
+RUN apk add --no-cache tzdata libc6-compat openssl \
   && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
   && echo "Asia/Shanghai" > /etc/timezone \
   && apk del tzdata
