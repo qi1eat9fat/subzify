@@ -48,3 +48,5 @@ prisma/dev.db-journal
 /dev.db
 /dev.db-journal
 /data/
+
+.claude/
