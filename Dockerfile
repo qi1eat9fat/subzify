@@ -32,6 +32,8 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 
@@ -41,4 +43,4 @@ ENV PORT=8300
 ENV HOSTNAME="0.0.0.0"
 ENV DATABASE_URL="file:/app/data/subzify.db"
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
