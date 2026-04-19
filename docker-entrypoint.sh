@@ -1,11 +1,20 @@
 #!/bin/sh
 set -e
 
-# Fix ownership of the mounted data volume so the non-root nextjs user can
-# write to it (SQLite needs to create -journal/-wal files next to the db).
-# Runs as root, then drops privileges via su-exec.
 mkdir -p /app/data
-chown -R nextjs:nodejs /app/data
 
-su-exec nextjs node ./node_modules/prisma/build/index.js migrate deploy
-exec su-exec nextjs node server.js
+# Best-effort: align /app/data ownership with the in-image nextjs user.
+# This fails silently on rootless Docker / Podman / restricted bind mounts,
+# where even the container-root cannot chown host-owned paths.
+chown -R nextjs:nodejs /app/data 2>/dev/null || true
+
+# Drop privileges to whoever actually owns /app/data. On a normal Docker
+# daemon this resolves to 1001:1001 (nextjs:nodejs) after the chown above;
+# on rootless setups it resolves to the host user's mapped uid/gid, which is
+# the only identity allowed to write to the bind-mounted volume.
+DATA_UID=$(stat -c '%u' /app/data)
+DATA_GID=$(stat -c '%g' /app/data)
+RUN_AS="${DATA_UID}:${DATA_GID}"
+
+su-exec "$RUN_AS" node ./node_modules/prisma/build/index.js migrate deploy
+exec su-exec "$RUN_AS" node server.js
