@@ -35,7 +35,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
-RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+RUN mkdir -p /app/data /app/.next/cache \
+  && chown nextjs:nodejs /app/data \
+  && chmod 1777 /app/.next/cache
 
 EXPOSE 8300
 ENV PORT=8300
