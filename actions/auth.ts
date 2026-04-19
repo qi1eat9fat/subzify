@@ -90,11 +90,10 @@ export async function logout() {
 }
 
 export async function changePassword(_prevState: unknown, formData: FormData) {
-  const currentPassword = formData.get("currentPassword") as string
   const newPassword = formData.get("newPassword") as string
   const confirmPassword = formData.get("confirmPassword") as string
 
-  if (!currentPassword || !newPassword) {
+  if (!newPassword) {
     return { error: "请填写所有字段" }
   }
 
@@ -112,12 +111,6 @@ export async function changePassword(_prevState: unknown, formData: FormData) {
 
   if (!config) {
     return { error: "系统未初始化" }
-  }
-
-  const valid = await bcrypt.compare(currentPassword, config.value)
-
-  if (!valid) {
-    return { error: "当前密码错误" }
   }
 
   const hash = await bcrypt.hash(newPassword, 12)

@@ -1,10 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -36,17 +35,29 @@ export function SystemReset() {
 
   return (
     <>
-      <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-base text-destructive">危险操作</CardTitle>
-          <CardDescription>重置系统将清除所有数据，包括订阅、分类、配置和密码，此操作不可撤销</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <article className="nordic-card flex flex-col gap-5 p-5 border-[color:var(--nordic-clay)]/30">
+        <header className="flex items-start gap-3">
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[color:var(--nordic-clay)]/10 ring-1 ring-[color:var(--nordic-clay)]/20">
+            <AlertTriangle className="h-5 w-5 text-[color:var(--nordic-clay)]" strokeWidth={1.4} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[17px] font-medium leading-tight tracking-tight text-[color:var(--nordic-clay)]">
+              危险操作
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              重置系统将清除所有数据，包括订阅、分类、配置和密码，此操作不可撤销
+            </p>
+          </div>
+        </header>
+
+        <div className="nordic-hairline" />
+
+        <div>
           <Button variant="destructive" onClick={() => setOpen(true)}>
             重置系统
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </article>
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>

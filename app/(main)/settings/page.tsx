@@ -8,18 +8,20 @@ export default async function SettingsPage() {
   const settings = await getSettings()
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">系统设置</h2>
-        <p className="text-muted-foreground mt-1">通知配置与安全设置</p>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <span className="h-px w-8 bg-[color:var(--nordic-sand)]" />
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          settings · 系统设置
+        </h2>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-3">
         <BarkSettings defaultValues={settings} />
         <TelegramSettings defaultValues={settings} />
+        <PasswordChange />
       </div>
 
-      <PasswordChange />
       <SystemReset />
     </div>
   )

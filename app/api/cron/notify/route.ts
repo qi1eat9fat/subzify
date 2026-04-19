@@ -26,10 +26,12 @@ export async function GET(request: NextRequest) {
   await advanceExpiredAutoRenewals()
 
   const now = new Date()
+  const startOfToday = new Date(now)
+  startOfToday.setHours(0, 0, 0, 0)
   const maxLookahead = new Date(now.getTime() + 90 * 86400 * 1000)
 
   const candidates = await prisma.subscription.findMany({
-    where: { expiresAt: { gte: now, lte: maxLookahead } },
+    where: { expiresAt: { gte: startOfToday, lte: maxLookahead } },
     include: { category: true },
   })
 
@@ -50,8 +52,23 @@ export async function GET(request: NextRequest) {
   const configMap = new Map(configs.map((c) => [c.key, c.value]))
 
   let sentCount = 0
+  let skippedCount = 0
 
   for (const sub of eligible) {
+    // Mark as notified BEFORE sending. If the write fails (e.g. readonly DB),
+    // skip this sub entirely so we don't spam the user every 5 minutes when
+    // the send succeeds but the write loops forever.
+    try {
+      await prisma.subscription.update({
+        where: { id: sub.id },
+        data: { notifiedAt: now },
+      })
+    } catch (err) {
+      console.error(`[cron/notify] failed to mark ${sub.id} (${sub.name}) before send, skipping:`, err)
+      skippedCount++
+      continue
+    }
+
     const daysLeft = Math.ceil(
       (new Date(sub.expiresAt).getTime() - now.getTime()) / 86400000
     )
@@ -75,14 +92,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    await Promise.allSettled(promises)
-
-    await prisma.subscription.update({
-      where: { id: sub.id },
-      data: { notifiedAt: now },
-    })
+    try {
+      await Promise.allSettled(promises)
+    } catch (err) {
+      console.error(`[cron/notify] send failed for ${sub.id} (${sub.name}):`, err)
+    }
     sentCount++
   }
 
-  return NextResponse.json({ message: "Notifications sent", count: sentCount })
+  return NextResponse.json({ message: "Notifications sent", count: sentCount, skipped: skippedCount })
 }

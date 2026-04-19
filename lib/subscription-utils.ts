@@ -49,16 +49,6 @@ export function cycleToDays(cycleCount: number, cycleUnit: string): number {
   }
 }
 
-export function monthlyize(amount: number, cycleCount: number, cycleUnit: string): number {
-  const days = cycleToDays(cycleCount, cycleUnit)
-  return amount * (30.44 / days)
-}
-
-export function annualize(amount: number, cycleCount: number, cycleUnit: string): number {
-  const days = cycleToDays(cycleCount, cycleUnit)
-  return amount * (365.25 / days)
-}
-
 export function convertToCNY(
   amount: number,
   currency: string,
@@ -70,6 +60,53 @@ export function convertToCNY(
   return amount * rate
 }
 
+export function getNaturalMonthWindow(ref: Date): { start: Date; end: Date } {
+  const start = new Date(ref.getFullYear(), ref.getMonth(), 1, 0, 0, 0, 0)
+  const end = new Date(ref.getFullYear(), ref.getMonth() + 1, 0, 23, 59, 59, 999)
+  return { start, end }
+}
+
+export function getNaturalYearWindow(ref: Date): { start: Date; end: Date } {
+  const start = new Date(ref.getFullYear(), 0, 1, 0, 0, 0, 0)
+  const end = new Date(ref.getFullYear(), 11, 31, 23, 59, 59, 999)
+  return { start, end }
+}
+
+function daysInclusive(start: Date, end: Date): number {
+  if (end < start) return 0
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+  return Math.floor((endDay.getTime() - startDay.getTime()) / 86400000) + 1
+}
+
+export function calculateSpendInWindow(
+  sub: {
+    amount: number
+    currency: string
+    cycleCount: number
+    cycleUnit: string
+    autoRenew: boolean
+    expiresAt: Date
+  },
+  rateMap: Map<string, number>,
+  windowStart: Date,
+  windowEnd: Date
+): number {
+  const dailyCny =
+    convertToCNY(sub.amount, sub.currency, rateMap) /
+    cycleToDays(sub.cycleCount, sub.cycleUnit)
+
+  const expires = new Date(sub.expiresAt)
+  const effectiveEnd = sub.autoRenew
+    ? windowEnd
+    : expires < windowEnd
+    ? expires
+    : windowEnd
+
+  const days = daysInclusive(windowStart, effectiveEnd)
+  return dailyCny * days
+}
+
 export function calculateEffectiveMonthlySpend(
   sub: {
     amount: number
@@ -79,14 +116,11 @@ export function calculateEffectiveMonthlySpend(
     autoRenew: boolean
     expiresAt: Date
   },
-  rateMap: Map<string, number>
+  rateMap: Map<string, number>,
+  ref: Date = new Date()
 ): number {
-  const cnyAmount = convertToCNY(sub.amount, sub.currency, rateMap)
-  const monthlyCny = monthlyize(cnyAmount, sub.cycleCount, sub.cycleUnit)
-  const now = new Date()
-
-  if (!sub.autoRenew && new Date(sub.expiresAt) < now) return 0
-  return monthlyCny
+  const { start, end } = getNaturalMonthWindow(ref)
+  return calculateSpendInWindow(sub, rateMap, start, end)
 }
 
 export function calculateEffectiveYearlySpend(
@@ -98,19 +132,9 @@ export function calculateEffectiveYearlySpend(
     autoRenew: boolean
     expiresAt: Date
   },
-  rateMap: Map<string, number>
+  rateMap: Map<string, number>,
+  ref: Date = new Date()
 ): number {
-  const cnyAmount = convertToCNY(sub.amount, sub.currency, rateMap)
-  const yearlyCny = annualize(cnyAmount, sub.cycleCount, sub.cycleUnit)
-  const now = new Date()
-
-  if (!sub.autoRenew && new Date(sub.expiresAt) < now) return 0
-  if (sub.autoRenew) return yearlyCny
-
-  const monthsRemaining = Math.max(
-    0,
-    (new Date(sub.expiresAt).getFullYear() - now.getFullYear()) * 12 +
-      (new Date(sub.expiresAt).getMonth() - now.getMonth())
-  )
-  return yearlyCny * Math.min(monthsRemaining / 12, 1)
+  const { start, end } = getNaturalYearWindow(ref)
+  return calculateSpendInWindow(sub, rateMap, start, end)
 }

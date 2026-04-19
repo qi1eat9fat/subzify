@@ -1,16 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,19 +13,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CategoryForm } from "@/components/categories/category-form"
+import { CategoryCard, type CategoryCardData } from "@/components/categories/category-card"
 import { deleteCategory } from "@/actions/categories"
 import { customToast } from "@/components/ui/custom-toast"
 
-type CategoryWithCount = {
-  id: string
-  name: string
-  createdAt: Date
-  _count: { subscriptions: number }
-}
-
-export function CategoryList({ categories }: { categories: CategoryWithCount[] }) {
+export function CategoryList({ categories }: { categories: CategoryCardData[] }) {
   const [formOpen, setFormOpen] = useState(false)
   const [editCategory, setEditCategory] = useState<{ id: string; name: string } | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -48,70 +33,51 @@ export function CategoryList({ categories }: { categories: CategoryWithCount[] }
     setDeleteId(null)
   }
 
+  function openEdit(cat: { id: string; name: string }) {
+    setEditCategory(cat)
+    setFormOpen(true)
+  }
+
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-base font-medium">全部分类</CardTitle>
-          <Button size="sm" onClick={() => { setEditCategory(null); setFormOpen(true) }}>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            共 <span className="tabular-nums text-foreground">{categories.length}</span> 个分类
+          </p>
+          <Button
+            size="sm"
+            onClick={() => {
+              setEditCategory(null)
+              setFormOpen(true)
+            }}
+          >
             <Plus className="mr-1 h-4 w-4" />
             新增分类
           </Button>
-        </CardHeader>
-        <CardContent>
-          {categories.length === 0 ? (
-            <p className="text-center text-sm text-muted-foreground py-8">
-              暂无分类，点击右上角新增
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>名称</TableHead>
-                  <TableHead className="tabular-nums w-[120px]">订阅数</TableHead>
-                  <TableHead className="tabular-nums w-[160px]">创建时间</TableHead>
-                  <TableHead className="w-[100px] text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {categories.map((cat) => (
-                  <TableRow key={cat.id}>
-                    <TableCell className="font-medium">{cat.name}</TableCell>
-                    <TableCell className="tabular-nums">{cat._count.subscriptions}</TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground">
-                      {new Date(cat.createdAt).toLocaleDateString("zh-CN")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => { setEditCategory({ id: cat.id, name: cat.name }); setFormOpen(true) }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(cat.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+        </div>
 
-      <CategoryForm
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        category={editCategory}
-      />
+        {categories.length === 0 ? (
+          <div className="nordic-card flex flex-col items-center justify-center gap-2 p-12 text-center">
+            <p className="text-sm text-muted-foreground">暂无分类</p>
+            <p className="text-xs text-muted-foreground">点击右上角「新增分类」开始创建</p>
+          </div>
+        ) : (
+          <div className="nordic-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {categories.map((cat, i) => (
+              <CategoryCard
+                key={cat.id}
+                category={cat}
+                index={i}
+                onEdit={openEdit}
+                onDelete={setDeleteId}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <CategoryForm open={formOpen} onOpenChange={setFormOpen} category={editCategory} />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
@@ -126,7 +92,10 @@ export function CategoryList({ categories }: { categories: CategoryWithCount[] }
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               删除
             </AlertDialogAction>
           </AlertDialogFooter>

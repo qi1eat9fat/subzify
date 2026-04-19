@@ -1,19 +1,21 @@
-# Subzify
+# 知订 · Subzify
 
 轻量级订阅管理与到期提醒服务。自托管、单用户，支持多币种换算、分类管理，以及 Bark / Telegram 到期推送。
 
 ## 功能
 
 - 订阅管理：金额、币种、计费周期、到期日、自动续订
+- 仪表盘：本月 / 本年按自然周期累计花费、分类占比甜甜圈、到期倒计时分级（紧急 / 提醒 / 临近）
 - 分类管理
 - 多币种 → CNY 汇率自动换算与缓存
 - 到期提醒：可配置提前天数及每日推送时间
 - 推送通道：Bark、Telegram Bot
 - 单用户密码登录（iron-session）
+- 移动端友好：底部岛式导航，浅 / 深色主题自适配
 
 ## 技术栈
 
-Next.js 16 (App Router) · React 19 · Prisma 7 + better-sqlite3 · Tailwind CSS 4 · shadcn/ui + Base UI · node-cron
+Next.js 16 (App Router) · React 19 · Prisma 7 + better-sqlite3 · Tailwind CSS 4 · shadcn + Base UI · Recharts · @wrksz/themes · node-cron
 
 ## 使用 Docker 部署（推荐）
 
@@ -60,6 +62,12 @@ npm run dev
 ```
 
 访问 `http://localhost:3000`。首次访问会进入初始化页面设置管理密码。
+
+如需本地调试到期推送逻辑，可用测试数据种子：
+
+```bash
+npx tsx scripts/seed-test-data.ts
+```
 
 ## 环境变量
 

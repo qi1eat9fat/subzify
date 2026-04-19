@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { refreshExchangeRates } from "@/actions/exchange-rates"
 import { RefreshCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { refreshExchangeRates } from "@/actions/exchange-rates"
 import { customToast } from "@/components/ui/custom-toast"
+import { ExchangeRateItem } from "@/components/settings/exchange-rate-item"
 
 type Rate = { currency: string; rate: number; updatedAt: Date }
 
@@ -23,36 +23,29 @@ export function ExchangeRateCard({ rates }: { rates: Rate[] }) {
   const foreignRates = rates.filter((r) => r.currency !== "CNY")
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <div>
-          <CardTitle className="text-base">汇率管理</CardTitle>
-          <CardDescription>当前汇率数据（1 外币 = X 人民币）</CardDescription>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          共 <span className="tabular-nums text-foreground">{foreignRates.length}</span> 个外币汇率（1 外币 = X 人民币）
+        </p>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
           <RefreshCw className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           {loading ? "刷新中..." : "刷新汇率"}
         </Button>
-      </CardHeader>
-      <CardContent>
-        {foreignRates.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            暂无汇率数据，请点击刷新获取
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {foreignRates.map((r) => (
-              <div key={r.currency} className="rounded-lg border p-3">
-                <div className="text-sm font-medium">{r.currency}</div>
-                <div className="text-lg font-bold tabular-nums">¥{r.rate.toFixed(4)}</div>
-                <div className="text-xs text-muted-foreground tabular-nums">
-                  {new Date(r.updatedAt).toLocaleDateString("zh-CN")}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {foreignRates.length === 0 ? (
+        <div className="nordic-card flex flex-col items-center justify-center gap-2 p-12 text-center">
+          <p className="text-sm text-muted-foreground">暂无汇率数据</p>
+          <p className="text-xs text-muted-foreground">点击右上角「刷新汇率」获取最新数据</p>
+        </div>
+      ) : (
+        <div className="nordic-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {foreignRates.map((r, i) => (
+            <ExchangeRateItem key={r.currency} rate={r} index={i} />
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

@@ -18,7 +18,7 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV TZ=Asia/Shanghai
-RUN apk add --no-cache tzdata libc6-compat openssl \
+RUN apk add --no-cache tzdata libc6-compat openssl su-exec \
   && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
   && echo "Asia/Shanghai" > /etc/timezone \
   && apk del tzdata
@@ -37,7 +37,6 @@ RUN chmod +x ./docker-entrypoint.sh
 
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 
-USER nextjs
 EXPOSE 8300
 ENV PORT=8300
 ENV HOSTNAME="0.0.0.0"

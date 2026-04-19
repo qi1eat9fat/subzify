@@ -55,7 +55,6 @@ export async function createSubscription(_prevState: unknown, formData: FormData
     },
   })
 
-  revalidatePath("/subscriptions")
   revalidatePath("/dashboard")
   return { success: "订阅创建成功" }
 }
@@ -106,14 +105,12 @@ export async function updateSubscription(_prevState: unknown, formData: FormData
     },
   })
 
-  revalidatePath("/subscriptions")
   revalidatePath("/dashboard")
   return { success: "订阅更新成功" }
 }
 
 export async function deleteSubscription(id: string) {
   await prisma.subscription.delete({ where: { id } })
-  revalidatePath("/subscriptions")
   revalidatePath("/dashboard")
   return { success: "订阅删除成功" }
 }
