@@ -16,11 +16,15 @@ export {
 export type { SubscriptionStatus } from "@/lib/subscription-utils"
 
 export async function advanceExpiredAutoRenewals() {
-  const now = new Date()
+  // Compare by calendar day: the expiry day itself is still considered active,
+  // so only advance once today's midnight has passed the stored expiresAt.
+  const startOfToday = new Date()
+  startOfToday.setHours(0, 0, 0, 0)
+
   const expiredAutoRenew = await prisma.subscription.findMany({
     where: {
       autoRenew: true,
-      expiresAt: { lt: now },
+      expiresAt: { lt: startOfToday },
     },
   })
 
@@ -29,7 +33,7 @@ export async function advanceExpiredAutoRenewals() {
     let nextExpiry = sub.expiresAt
     let advances = 0
     let stuck = false
-    while (nextExpiry < now) {
+    while (nextExpiry < startOfToday) {
       if (advances++ >= MAX_ADVANCES) {
         console.error(
           `[lifecycle] giving up advancing ${sub.id} (${sub.name}) after ${MAX_ADVANCES} iterations; cycle=${sub.cycleCount} ${sub.cycleUnit}`

@@ -1,9 +1,12 @@
 export type SubscriptionStatus = "active" | "expiring_soon" | "expired"
 
 export function deriveStatus(sub: { expiresAt: Date; autoRenew: boolean }): SubscriptionStatus {
-  const now = new Date()
-  const daysUntilExpiry = Math.ceil(
-    (new Date(sub.expiresAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const expiryDay = new Date(sub.expiresAt)
+  expiryDay.setHours(0, 0, 0, 0)
+  const daysUntilExpiry = Math.round(
+    (expiryDay.getTime() - today.getTime()) / 86400000
   )
 
   if (daysUntilExpiry < 0) return "expired"
