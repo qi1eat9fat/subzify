@@ -10,6 +10,7 @@ chown -R nextjs:nodejs /app/data 2>/dev/null || true
 DATA_UID=$(stat -c '%u' /app/data)
 DATA_GID=$(stat -c '%g' /app/data)
 CURRENT_UID=$(id -u)
+CURRENT_GID=$(id -g)
 RUN_AS="${DATA_UID}:${DATA_GID}"
 
 # Pick whether to drop privileges. Rootless Docker/Podman forbids setgroups(0),
@@ -25,9 +26,8 @@ fi
 if ! $AS sh -c ': >/app/data/.write-test && rm /app/data/.write-test' 2>/dev/null; then
   echo "ERROR: /app/data is not writable inside the container." >&2
   echo "       Host bind mount owner uid=${DATA_UID}, runtime uid=${CURRENT_UID}." >&2
-  echo "       Fix on the host (pick one):" >&2
-  echo "         sudo chown -R \$(id -u):\$(id -g) ./data" >&2
-  echo "         # or in docker-compose.yml, add:  user: \"\${UID}:\${GID}\"" >&2
+  echo "       Fix on the host (run from the project directory):" >&2
+  echo "         sudo chown -R ${CURRENT_UID}:${CURRENT_GID} ./data" >&2
   exit 1
 fi
 
