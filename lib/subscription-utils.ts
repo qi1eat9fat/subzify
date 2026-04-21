@@ -1,13 +1,9 @@
+import { shanghaiDayDiff } from "@/lib/date"
+
 export type SubscriptionStatus = "active" | "expiring_soon" | "expired"
 
 export function deriveStatus(sub: { expiresAt: Date; autoRenew: boolean }): SubscriptionStatus {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const expiryDay = new Date(sub.expiresAt)
-  expiryDay.setHours(0, 0, 0, 0)
-  const daysUntilExpiry = Math.round(
-    (expiryDay.getTime() - today.getTime()) / 86400000
-  )
+  const daysUntilExpiry = shanghaiDayDiff(new Date(sub.expiresAt), new Date())
 
   if (daysUntilExpiry < 0) return "expired"
   if (daysUntilExpiry <= 30) return "expiring_soon"

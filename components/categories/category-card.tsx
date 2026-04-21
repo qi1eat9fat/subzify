@@ -2,6 +2,7 @@
 
 import { FolderOpen, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatShanghaiDate } from "@/lib/date"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,13 +99,11 @@ export function CategoryCard({
 
       <footer className="flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
         <span className="tabular-nums flex-shrink-0">
-          {new Date(category.createdAt)
-            .toLocaleDateString("zh-CN", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-            })
-            .replace(/\//g, ".")}
+          {formatShanghaiDate(new Date(category.createdAt), {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).replace(/\//g, ".")}
         </span>
         <span aria-hidden className="flex-shrink-0">·</span>
         <span className="truncate normal-case tracking-normal">创建于</span>

@@ -6,6 +6,7 @@ import {
   calculateEffectiveMonthlySpend,
   calculateEffectiveYearlySpend,
 } from "@/lib/subscription-lifecycle"
+import { addShanghaiDays, shanghaiDateKey } from "@/lib/date"
 import { MonthlySpendCard, YearlySpendCard } from "@/components/dashboard/spend-summary"
 import { ExpiringList } from "@/components/dashboard/expiring-list"
 import { CategoryDonut } from "@/components/dashboard/category-donut"
@@ -35,27 +36,34 @@ export default async function DashboardPage() {
     categoryTotals.set(catName, existing)
   }
 
-  const now = new Date()
-  const threeDays = new Date(now.getTime() + 3 * 86400000)
-  const oneWeek = new Date(now.getTime() + 7 * 86400000)
-  const oneMonth = new Date(now.getTime() + 30 * 86400000)
+  const todayKey = shanghaiDateKey()
+  const in3Days = addShanghaiDays(todayKey, 3)
+  const in7Days = addShanghaiDays(todayKey, 7)
+  const in30Days = addShanghaiDays(todayKey, 30)
+
+  const keyOf = (s: { expiresAt: Date }) => shanghaiDateKey(new Date(s.expiresAt))
 
   const expiringSubs = subscriptions
-    .filter((s) => new Date(s.expiresAt) <= oneMonth && new Date(s.expiresAt) >= now)
+    .filter((s) => {
+      const key = keyOf(s)
+      return key >= todayKey && key <= in30Days
+    })
     .sort((a, b) => new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime())
 
   const expiringGroups = {
-    critical: expiringSubs.filter((s) => new Date(s.expiresAt) <= threeDays),
-    warning: expiringSubs.filter(
-      (s) => new Date(s.expiresAt) > threeDays && new Date(s.expiresAt) <= oneWeek
-    ),
-    upcoming: expiringSubs.filter(
-      (s) => new Date(s.expiresAt) > oneWeek && new Date(s.expiresAt) <= oneMonth
-    ),
+    critical: expiringSubs.filter((s) => keyOf(s) <= in3Days),
+    warning: expiringSubs.filter((s) => {
+      const key = keyOf(s)
+      return key > in3Days && key <= in7Days
+    }),
+    upcoming: expiringSubs.filter((s) => {
+      const key = keyOf(s)
+      return key > in7Days && key <= in30Days
+    }),
   }
 
   const activeCount = subscriptions.filter(
-    (s) => s.autoRenew || new Date(s.expiresAt).getTime() >= Date.now(),
+    (s) => s.autoRenew || keyOf(s) >= todayKey,
   ).length
 
   const hasRates = rateMap.size > 1

@@ -2,6 +2,7 @@ import Image from "next/image"
 import { CreditCard } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getCurrencySymbol } from "@/lib/constants"
+import { shanghaiDayDiff } from "@/lib/date"
 
 type ExpiringSubscription = {
   id: string
@@ -41,7 +42,7 @@ const tierConfig = {
 }
 
 function daysUntil(date: Date) {
-  return Math.ceil((new Date(date).getTime() - Date.now()) / 86400000)
+  return shanghaiDayDiff(new Date(date), new Date())
 }
 
 export function ExpiringList({ groups }: { groups: ExpiringGroups }) {

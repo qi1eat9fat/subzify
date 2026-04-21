@@ -22,6 +22,7 @@ import { IconSearch } from "@/components/subscriptions/icon-search"
 import { createSubscription, updateSubscription } from "@/actions/subscriptions"
 import { CURRENCIES, CYCLE_UNITS } from "@/lib/constants"
 import { customToast } from "@/components/ui/custom-toast"
+import { shanghaiDateKey } from "@/lib/date"
 
 type Category = { id: string; name: string }
 type SubscriptionData = {
@@ -106,7 +107,7 @@ export function SubscriptionForm({
 
   const formatDate = (date?: Date) => {
     if (!date) return ""
-    return new Date(date).toISOString().split("T")[0]
+    return shanghaiDateKey(new Date(date))
   }
 
   const defaultNotifyTime = subscription

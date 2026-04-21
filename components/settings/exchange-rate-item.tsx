@@ -1,4 +1,5 @@
 import { CURRENCIES } from "@/lib/constants"
+import { formatShanghaiDate } from "@/lib/date"
 
 type Rate = { currency: string; rate: number; updatedAt: Date }
 
@@ -47,13 +48,11 @@ export function ExchangeRateItem({ rate, index = 0 }: { rate: Rate; index?: numb
 
       <footer className="flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
         <span className="tabular-nums flex-shrink-0">
-          {new Date(rate.updatedAt)
-            .toLocaleDateString("zh-CN", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-            })
-            .replace(/\//g, ".")}
+          {formatShanghaiDate(new Date(rate.updatedAt), {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).replace(/\//g, ".")}
         </span>
         <span aria-hidden className="flex-shrink-0">·</span>
         <span className="truncate normal-case tracking-normal">{name}</span>

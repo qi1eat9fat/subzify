@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { startOfShanghaiDay } from "@/lib/date"
 import { getNextExpiryDate } from "@/lib/subscription-utils"
 
 // Re-export all pure functions for server-side usage
@@ -16,10 +17,9 @@ export {
 export type { SubscriptionStatus } from "@/lib/subscription-utils"
 
 export async function advanceExpiredAutoRenewals() {
-  // Compare by calendar day: the expiry day itself is still considered active,
-  // so only advance once today's midnight has passed the stored expiresAt.
-  const startOfToday = new Date()
-  startOfToday.setHours(0, 0, 0, 0)
+  // Compare by Shanghai calendar day: the expiry day itself is still active,
+  // so only advance once today's Shanghai midnight has passed expiresAt.
+  const startOfToday = startOfShanghaiDay()
 
   const expiredAutoRenew = await prisma.subscription.findMany({
     where: {

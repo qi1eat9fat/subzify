@@ -5,6 +5,7 @@ import { MoreHorizontal, CreditCard, RefreshCw, Pencil, Trash2 } from "lucide-re
 import { cn } from "@/lib/utils"
 import { getCurrencySymbol } from "@/lib/constants"
 import { deriveStatus } from "@/lib/subscription-utils"
+import { formatShanghaiDate, shanghaiDayDiff } from "@/lib/date"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,7 +35,7 @@ const cycleShort: Record<string, string> = {
 }
 
 function daysUntil(date: Date) {
-  return Math.ceil((new Date(date).getTime() - Date.now()) / 86400000)
+  return shanghaiDayDiff(new Date(date), new Date())
 }
 
 export function SubscriptionCard({
@@ -122,7 +123,7 @@ export function SubscriptionCard({
       <footer className="flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
         <div className="flex min-w-0 items-center gap-2">
           <span className="tabular-nums flex-shrink-0">
-            {new Date(sub.expiresAt).toLocaleDateString("zh-CN", {
+            {formatShanghaiDate(new Date(sub.expiresAt), {
               year: "numeric",
               month: "2-digit",
               day: "2-digit",
