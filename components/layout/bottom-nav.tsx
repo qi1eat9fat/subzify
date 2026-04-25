@@ -90,7 +90,7 @@ export function BottomNav() {
   return (
     <nav
       className="fixed left-1/2 z-50 -translate-x-1/2"
-      style={{ bottom: "calc(36px + env(safe-area-inset-bottom))" }}
+      style={{ bottom: "calc(24px + env(safe-area-inset-bottom))" }}
       aria-label="主导航"
     >
       {/* 外岛壳 */}
